@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Yuva Christmas Wish</title>
+<style>
+:root{--gold:#ffea55;--deep:#8b0000;--light-deep:#b30000;--bg-grad:linear-gradient(180deg,#330000,#000)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,Poppins,system-ui,sans-serif;background:var(--bg-grad);color:#fff;-webkit-font-smoothing:antialiased}
+
+/* centered mobile layout */
+.container{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 12px;gap:18px;text-align:center}
+.merry-christmas{font-family:'Dancing Script',cursive;font-size:clamp(28px,8vw,44px);color:var(--gold);letter-spacing:2px;text-shadow:0 0 10px gold,0 0 20px rgba(255,230,150,0.6)}
+.big-tree{font-size:clamp(48px,12vw,84px);margin:6px 0}
+.input-box{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px}
+.input-box input{width:92%;max-width:520px;padding:12px 16px;border-radius:12px;border:none;font-size:clamp(14px,4.5vw,18px);text-align:center;background:rgba(255,255,255,0.10);color:var(--gold);outline:none}
+.input-box button{width:60%;max-width:320px;padding:12px 14px;border-radius:999px;border:none;background:var(--gold);color:var(--deep);font-weight:700;font-size:clamp(14px,4vw,18px);cursor:pointer}
+.footer-small{text-align:center;color:var(--gold);font-family:'Dancing Script';font-size:clamp(14px,3.5vw,18px);padding:8px}
+
+/* gift box (centered, initially hidden) */
+.gift-wrap{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:10010}
+.gift{width:140px;height:120px;background:linear-gradient(180deg,#b30000,#8b0000);border-radius:12px;position:relative;box-shadow:0 10px 40px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.gift:before{content:'';position:absolute;left:50%;top:0;transform:translateX(-50%);width:18px;height:120px;background:gold}
+.gift .ribbon{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:80%;height:34px;background:gold;border-radius:6px}
+.gift .lid{position:absolute;left:0;top:-28px;width:100%;height:44px;background:linear-gradient(180deg,#ffea55,#ffd24d);border-radius:8px 8px 0 0}
+
+/* gift animations */
+@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-6px)}100%{transform:translateX(0)}}
+@keyframes liftLid{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(-64px) rotate(-6deg)}}
+.sparkles{position:absolute;inset:auto;pointer-events:none}
+.sparkle{position:absolute;font-size:18px;opacity:0;transform:translateY(0);animation:pop 900ms ease forwards}
+@keyframes pop{0%{opacity:0;transform:translateY(0) scale(.6)}40%{opacity:1;transform:translateY(-24px) scale(1.05)}100%{opacity:0;transform:translateY(-60px) scale(.8)}}
+
+/* overlay modal with blur + pop animation */
+#overlay{position:fixed;inset:0;display:none;z-index:9999;align-items:center;justify-content:center;padding:12px;text-align:center}
+#overlay::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,0.66);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity:320ms}
+.overlay-shell{position:relative;width:100%;max-width:760px;transform:scale(0.96);opacity:0;transition:transform 360ms cubic-bezier(.2,.9,.2,1),opacity 320ms}
+#overlay.open{display:flex}
+#overlay.open::before{opacity:1}
+#overlay.open .overlay-shell{transform:scale(1);opacity:1;animation:popIn 360ms cubic-bezier(.2,.9,.2,1) both}
+@keyframes popIn{0%{transform:scale(.96) translateY(8px);opacity:0}60%{transform:scale(1.02) translateY(-4px);opacity:1}100%{transform:scale(1) translateY(0);opacity:1}}
+#backBtn{position:fixed;left:10px;top:10px;z-index:10001;background:transparent;border:0;color:var(--gold);font-weight:700;padding:10px;border-radius:10px;backdrop-filter:blur(6px);cursor:pointer}
+.overlay-content{display:flex;flex-direction:column;gap:12px;align-items:center;padding:12px}
+.overlay-card{width:100%;background:linear-gradient(135deg,var(--light-deep),#6e0000);padding:18px;border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,0.6);text-align:center}
+.overlay-card h2{margin:6px 0;font-size:clamp(22px,6vw,30px)}
+.break-word{word-break:break-word;overflow-wrap:break-word}
+
+/* small ornaments & snow (light) */
+.ornament{position:fixed;font-size:20px;opacity:0.9;pointer-events:none}
+#orn1{left:6vw;top:12vh}#orn2{right:6vw;top:22vh}#orn3{left:8vw;bottom:18vh}
+.snowflake{position:fixed;top:-10px;color:#fff;font-size:10px;opacity:0.85;animation:fall linear infinite;pointer-events:none}
+@keyframes fall{0%{transform:translateY(0) rotate(0deg)}100%{transform:translateY(120vh) rotate(360deg)}}
+
+/* download button */
+.download-btn{margin-top:8px;padding:10px 14px;border-radius:10px;border:none;background:var(--gold);color:var(--deep);font-weight:700;cursor:pointer}
+
+/* resume hint */
+#resumeMusic{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:var(--gold);padding:10px 16px;border-radius:999px;font-weight:700;z-index:100000;display:none;backdrop-filter:blur(4px)}
+
+/* accessibility focus */
+button:focus,input:focus{outline:3px solid rgba(255,234,85,0.18);outline-offset:2px}
+
+@media(min-width:769px){.container{padding:40px 36px}.input-box{flex-direction:row;justify-content:center}.input-box input{width:420px}}
+</style>
+</head>
+<body>
+<audio id="bgSong" src="jinglebells.mp3" loop preload="auto"></audio>
+
+<!-- resume hint -->
+<div id="resumeMusic">Tap to resume music 🎵</div>
+
+<!-- ornaments & snow -->
+<div class="ornament" id="orn1">🎄</div>
+<div class="ornament" id="orn2">✨</div>
+<div class="ornament" id="orn3">🔔</div>
+
+<script>
+for(let i=0;i<18;i++){const s=document.createElement('div');s.className='snowflake';s.textContent='❄';s.style.left=(Math.random()*100)+'vw';s.style.fontSize=(Math.random()*8+8)+'px';s.style.animationDuration=(Math.random()*6+4)+'s';document.body.appendChild(s);} 
+</script>
+
+<div class="container">
+  <div class="merry-christmas">🎅 MERRY 🎄 CHRISTMAS</div>
+  <div class="big-tree">🎄</div>
+
+  <div class="input-box">
+    <input id="username" type="text" inputmode="text" autocomplete="name" placeholder="Enter your name ✨" aria-label="Your name">
+    <button id="submitBtn">Send Wishes</button>
+  </div>
+
+  <div class="footer-small">🎄 LOVELY WISHES FROM <strong style="color:var(--gold)">YUVASRI</strong> 🎁</div>
+
+</div>
+<!-- gift box animation container -->
+<div class="gift-wrap" id="giftWrap" aria-hidden="true">
+  <div class="gift" id="gift">
+    <div class="lid" id="lid"></div>
+    <div class="ribbon"></div>
+    <!-- sparkles container -->
+    <div class="sparkles" id="sparkles"></div>
+  </div>
+</div>
+
+<!-- overlay modal -->
+<div id="overlay" aria-hidden="true" role="dialog" aria-modal="true">
+  <button id="backBtn" aria-label="Back">← Back</button>
+
+  <div class="overlay-shell">
+    <div class="overlay-content" id="overlayContent">
+      <div class="overlay-card">
+        <h2 class="break-word" id="overlayTitle">🎅 MERRY 🎄 CHRISTMAS</h2>
+        <div class="big-tree">🎄</div>
+        <p id="overlayGreet" class="break-word"></p>
+      </div>
+
+      <div class="overlay-card">
+        <h3 style="margin:6px 0;font-size:clamp(16px,4vw,20px)">🎁 <em>"For unto us a child is born."</em> — Isaiah 9:6</h3>
+      </div>
+
+      <div class="overlay-card">
+        <h3 id="overlayBless" class="break-word" style="font-size:clamp(18px,4.5vw,22px)"></h3>
+        <p style="margin-top:6px">✝ JESUS BLESS YOU ALL ✨</p>
+        <div style="margin-top:8px">
+          <button class="download-btn" id="downloadBtn">Download as Card</button>
+        </div>
+      </div>
+
+      <div class="overlay-card" style="text-align:center;padding:12px">
+        <div style="font-size:clamp(14px,3.5vw,18px)">🎄 LOVELY WISHES FROM <strong style="color:var(--gold)">YUVASRI</strong> 🎁</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- html2canvas CDN -->
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<script>
+const submitBtn = document.getElementById('submitBtn');
+const username = document.getElementById('username');
+const overlay = document.getElementById('overlay');
+const overlayGreet = document.getElementById('overlayGreet');
+const overlayBless = document.getElementById('overlayBless');
+const backBtn = document.getElementById('backBtn');
+const giftWrap = document.getElementById('giftWrap');
+const gift = document.getElementById('gift');
+const lid = document.getElementById('lid');
+const sparkles = document.getElementById('sparkles');
+const downloadBtn = document.getElementById('downloadBtn');
+const resumeHint = document.getElementById('resumeMusic');
+const bgSong = document.getElementById('bgSong');
+
+// --- CONFIG: put your Apps Script web app URL here (the one you provided) ---
+const SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyrAcB7y3zMjB6Qjhk-j8npZhW38SuxzgC15sQg30xtAW_Ju15tPH5xOawcWBnxQOQs/exec";
+
+// small helper to escape HTML
+function escapeHtml(str){return str.replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]});}
+
+// Typewriter helper
+function typeWriter(text, el, speed=30){el.textContent='';let i=0;function next(){if(i<text.length){el.textContent+=text.charAt(i++);setTimeout(next,speed);} }next();}
+
+// create sparkle elements
+function burstSparkles(){sparkles.innerHTML='';const colors=['#ffea55','#fff8d1','#ffd9a6'];for(let i=0;i<10;i++){const sp=document.createElement('div');sp.className='sparkle';sp.style.left=(40+Math.random()*60)+'%';sp.style.top=(40+Math.random()*40)+'%';sp.style.color=colors[Math.floor(Math.random()*colors.length)];sp.style.fontSize=(12+Math.random()*18)+'px';sparkles.appendChild(sp);setTimeout(()=>sp.style.opacity=1,10);} }
+
+// --- NAME SENDING: use an image beacon GET so Apps Script doGet receives the "name" reliably (no CORS) ---
+function sendNameBeacon(name){
+  try{
+    const img = new Image();
+    // append name as query parameter
+    img.src = SHEET_WEBAPP_URL + "?name=" + encodeURIComponent(name);
+    // keep a reference briefly to increase chance browser sends it
+    window.__nameBeacon = img;
+    setTimeout(()=>{ try{ window.__nameBeacon = null }catch(e){} }, 5000);
+    // best-effort logging
+    console.log("Name beacon sent (no response expected):", name);
+  }catch(err){
+    console.warn("Beacon send failed", err);
+  }
+}
+
+// Show gift animation then open overlay
+function playGiftSequence(name){
+  giftWrap.style.display='flex';
+  giftWrap.setAttribute('aria-hidden','false');
+  // shake
+  gift.style.animation='shake 700ms ease';
+  setTimeout(()=>{gift.style.animation='';},720);
+
+  // after shake, lift lid and burst sparkles
+  setTimeout(()=>{
+    lid.style.transition='transform 520ms cubic-bezier(.2,.9,.2,1)';
+    lid.style.transform='translateY(-64px) rotate(-6deg)';
+    burstSparkles();
+    // animate sparkles
+    const sparkleEls = sparkles.querySelectorAll('.sparkle');
+    sparkleEls.forEach((el,idx)=>{el.style.animationDelay=(idx*60)+'ms'});
+  },800);
+
+  // after pop, show overlay with typewriter
+  setTimeout(()=>{
+    giftWrap.setAttribute('aria-hidden','true');
+    giftWrap.style.display='none';
+
+    overlayGreet.textContent='';
+    overlayBless.textContent='';
+
+    // set content safely
+    const safeName = escapeHtml(name);
+    const greetText = `May the joy of Christ fill your heart, ${safeName} ✨`;
+    const blessText = `Blessings to ${safeName}!`;
+
+    overlay.style.display='flex';
+    requestAnimationFrame(()=>overlay.classList.add('open'));
+    overlay.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+
+    // typewriter effect
+    typeWriter(greetText, overlayGreet, 28);
+    // small delay then set blessing
+    setTimeout(()=>{overlayBless.textContent = blessText;}, (greetText.length*28)+120);
+
+  },1500);
+}
+
+function showOverlay(){
+  const name = username.value.trim();
+  if(!name){ username.focus(); alert('Please enter your name ✨'); return; }
+
+  // --- send the name to your Google Sheet right away (beacon GET) ---
+  sendNameBeacon(name);
+
+  // play gift then overlay
+  playGiftSequence(name);
+}
+
+function hideOverlay(){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');document.body.style.overflow='';setTimeout(()=>{overlay.style.display='none';username.focus();},380);}
+
+// Download overlay as image using html2canvas
+function downloadCard(){
+  // temporarily remove back button so it doesn't appear on card
+  backBtn.style.visibility='hidden';
+  html2canvas(document.querySelector('.overlay-shell'), {scale:2, useCORS:true}).then(canvas=>{
+    const link = document.createElement('a');
+    link.download = 'christmas-card.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }).finally(()=>{backBtn.style.visibility='visible';});
+}
+
+// event bindings
+submitBtn.addEventListener('click', showOverlay);
+backBtn.addEventListener('click', hideOverlay);
+username.addEventListener('keydown', function(e){ if(e.key==='Enter') showOverlay(); });
+window.addEventListener('keyup', function(e){ if(e.key==='Escape') hideOverlay(); });
+downloadBtn.addEventListener('click', downloadCard);
+
+// ---------------- MUSIC persistence logic ----------------
+// We try to autoplay on load. If browser blocks it, we show a small "Tap to resume music" hint.
+// If the user previously allowed music (stored in localStorage), we'll try again on load and
+// show the resume hint only if the autoplay is blocked.
+
+const MUSIC_FLAG = 'christmas_music_allowed_v1';
+let musicAllowed = !!localStorage.getItem(MUSIC_FLAG);
+
+function attemptPlayMusic(){
+  return bgSong.play().then(()=>{
+    // playing succeeded
+    localStorage.setItem(MUSIC_FLAG, '1');
+    musicAllowed = true;
+    resumeHint.style.display = 'none';
+    return true;
+  }).catch(()=>false);
+}
+
+// Try autoplay immediately on load
+attemptPlayMusic().then((ok)=>{
+  if(ok) return; // playing started
+  // autoplay blocked
+  if(musicAllowed){
+    // user had previously allowed music; show a prominent resume hint
+    resumeHint.style.display = 'block';
+  } else {
+    // attach a one-time gesture to start music and set flag
+    const gesture = () => {
+      attemptPlayMusic().then((ok2)=>{
+        if(ok2) {
+          resumeHint.style.display = 'none';
+        } else {
+          // show hint to ask user to tap
+          resumeHint.style.display = 'block';
+        }
+      });
+      document.removeEventListener('click', gesture);
+      document.removeEventListener('touchstart', gesture);
+    };
+    document.addEventListener('click', gesture);
+    document.addEventListener('touchstart', gesture);
+  }
+});
+
+// allow user to tap the resume hint
+resumeHint.addEventListener('click', function(){
+  attemptPlayMusic().then(ok=>{
+    if(ok) resumeHint.style.display='none';
+    else alert('Playback blocked — please try tapping anywhere on the page to allow audio.');
+  });
+});
+
+</script>
+</body>
+</html>
